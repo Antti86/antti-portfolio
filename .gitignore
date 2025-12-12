@@ -1,0 +1,150 @@
+##############################################
+# GLOBAL IGNORE SETTINGS FOR FULLSTACK REPO  #
+##############################################
+
+###############
+# NODE / NPM  #
+###############
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+##################
+# ENV VARIABLES  #
+##################
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+*.env.backup
+
+#############################
+# LOGS & RUNTIME ARTIFACTS #
+#############################
+logs/
+*.log
+log.txt
+debug.log
+error.log
+
+# Runtime data
+tmp/
+temp/
+*.pid
+*.seed
+*.pid.lock
+
+###############
+# BUILD FILES #
+###############
+build/
+dist/
+out/
+coverage/
+
+##########################
+# BACKEND SPECIFIC      #
+##########################
+backend/node_modules/
+backend/logs/
+backend/dist/
+backend/build/
+
+# Database dumps (optional)
+*.sqlite
+*.db
+*.sql
+infra/sql/*.sql
+
+##########################
+# FRONTEND SPECIFIC     #
+##########################
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+
+# React specific
+*.cache
+*.parcel-cache
+*.eslintcache
+
+###########
+# INFRA   #
+###########
+infra/.terraform/
+infra/terraform.tfstate
+infra/terraform.tfstate.backup
+infra/*.tfvars
+infra/.azure/
+infra/azure/*.json
+infra/docker/*.tar
+infra/.docker/
+
+# Docker
+docker-compose.override.yml
+.docker/
+*.dockerfile-backup
+
+#####################################
+# EDITORS / IDE / DEV TOOLING      #
+#####################################
+.vscode/
+.idea/
+*.iml
+
+# JetBrains
+.idea/
+*.ipr
+*.iws
+
+# VSCode local settings
+.vscode/settings.json
+.vscode/extensions.json
+.vscode/launch.json
+
+###################
+# OS FILES        #
+###################
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*.swp
+*.swo
+
+# Windows
+Thumbs.db
+desktop.ini
+
+###################
+# OTHER MISC      #
+###################
+*.bak
+*.tmp
+*.old
+*.orig
+*.lock
+
+####################
+# OPTIONAL         #
+####################
+
+# Local scripts not meant for repo
+local_scripts/
+
+# Local test data
+test-data/
+sandbox/
+playground/
+
+############################################################
+# END OF .GITIGNORE                                        #
+############################################################
+
