@@ -1,0 +1,32 @@
+[
+  {
+    "id": "portfolio-api",
+    "title": "Portfolio Fullstack (WIP)",
+    "description": "Fullstack portfolio project: Node.js REST API (V1 mock data), later PostgreSQL, React frontend and Azure deployment.",
+    "tech": ["Node.js", "Express", "Git", "Azure (planned)", "PostgreSQL (planned)"],
+    "githubUrl": "https://github.com/Antti86/antti-portfolio",
+    "demoUrl": null,
+    "featured": true,
+    "updatedAt": "2025-12-19T00:00:00.000Z"
+  },
+  {
+    "id": "node-customer-app",
+    "title": "Node Customer App",
+    "description": "Customer management example with Express and database integration (course project).",
+    "tech": ["Node.js", "Express", "PostgreSQL"],
+    "githubUrl": "https://github.com/Antti86",
+    "demoUrl": null,
+    "featured": true,
+    "updatedAt": "2025-11-20T00:00:00.000Z"
+  },
+  {
+    "id": "qt-chess",
+    "title": "C++/Qt Chess",
+    "description": "Cross-platform chess project with CI for Windows/Linux/macOS.",
+    "tech": ["C++", "Qt", "GitHub Actions"],
+    "githubUrl": "https://github.com/Antti86",
+    "demoUrl": null,
+    "featured": false,
+    "updatedAt": "2025-08-01T00:00:00.000Z"
+  }
+]

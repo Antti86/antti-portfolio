@@ -1,0 +1,36 @@
+[
+  {
+    "id": "js-basics",
+    "name": "JavaScript-perusteet",
+    "provider": "Metropolia (Avoin AMK)",
+    "ects": 0,
+    "status": "completed",
+    "completedAt": "2025-01-01",
+    "highlights": ["Perus syntaksi ja ohjelmointirakenteet", "DOM-perusteet ja työkalut"],
+    "proofUrl": null
+  },
+  {
+    "id": "nodejs",
+    "name": "Node.js",
+    "provider": "Metropolia (Avoin AMK)",
+    "ects": 3,
+    "status": "completed",
+    "completedAt": "2025-12-18",
+    "highlights": [
+      "Express REST API",
+      "Tietokantayhteydet ja CRUD-ajattelu",
+      "Perus deploy/ympäristömuuttujat"
+    ],
+    "proofUrl": null
+  },
+  {
+    "id": "react-fundamentals",
+    "name": "React.js Fundamentals",
+    "provider": "Metropolia (Avoin AMK)",
+    "ects": 0,
+    "status": "planned",
+    "completedAt": null,
+    "highlights": ["Komponentit ja state", "Reititys", "API-integraatio"],
+    "proofUrl": null
+  }
+]
