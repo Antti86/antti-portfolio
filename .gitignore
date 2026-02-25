@@ -56,8 +56,6 @@ backend/build/
 # Database dumps (optional)
 *.sqlite
 *.db
-*.sql
-infra/sql/*.sql
 
 ##########################
 # FRONTEND SPECIFIC     #
