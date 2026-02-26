@@ -1,3 +1,4 @@
+const { readOnlyGuard } = require('../middleware/readOnly');
 const express = require('express');
 const pool = require('../db/pool');
 
@@ -111,7 +112,7 @@ router.get('/:id', async (req, res, next) => {
  *   "diary_id": 2                      // optional
  * }
  */
-router.post('/', async (req, res, next) => {
+router.post('/', readOnlyGuard, async (req, res, next) => {
   try {
     const {
       name,
@@ -165,7 +166,7 @@ router.post('/', async (req, res, next) => {
  * Body can include any of:
  * { name, start_date, end_date, status, grade, school_id, diary_id }
  */
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', readOnlyGuard, async (req, res, next) => {
   try {
     const id = toInt(req.params.id);
     if (id === null) return res.status(400).json({ error: 'Invalid course id' });
@@ -233,7 +234,7 @@ router.put('/:id', async (req, res, next) => {
  * DELETE /api/courses/:id
  * Note: link tables use ON DELETE CASCADE, so related rows in course_tech/course_projects are removed automatically.
  */
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', readOnlyGuard, async (req, res, next) => {
   try {
     const id = toInt(req.params.id);
     if (id === null) return res.status(400).json({ error: 'Invalid course id' });

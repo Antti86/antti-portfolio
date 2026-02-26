@@ -1,3 +1,4 @@
+const { readOnlyGuard } = require('../middleware/readOnly');
 const express = require('express');
 const pool = require('../db/pool');
 const router = express.Router();
@@ -26,7 +27,7 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // CREATE
-router.post('/', async (req, res, next) => {
+router.post('/', readOnlyGuard, async (req, res, next) => {
   try {
     const { name } = req.body;
     const r = await pool.query('INSERT INTO tech (name) VALUES ($1) RETURNING tech_id, name', [
@@ -39,7 +40,7 @@ router.post('/', async (req, res, next) => {
 });
 
 // UPDATE
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', readOnlyGuard, async (req, res, next) => {
   try {
     const { name } = req.body;
     const r = await pool.query(
@@ -54,7 +55,7 @@ router.put('/:id', async (req, res, next) => {
 });
 
 // DELETE
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', readOnlyGuard, async (req, res, next) => {
   try {
     const r = await pool.query('DELETE FROM tech WHERE tech_id = $1', [req.params.id]);
     if (r.rowCount === 0) return res.status(404).json({ error: 'Not found' });

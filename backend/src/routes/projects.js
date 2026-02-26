@@ -1,3 +1,4 @@
+const { readOnlyGuard } = require('../middleware/readOnly');
 const express = require('express');
 const pool = require('../db/pool');
 
@@ -112,7 +113,7 @@ router.get('/:id', async (req, res, next) => {
  *   "diary_id": 2                      // optional
  * }
  */
-router.post('/', async (req, res, next) => {
+router.post('/', readOnlyGuard, async (req, res, next) => {
   try {
     const {
       name,
@@ -166,7 +167,7 @@ router.post('/', async (req, res, next) => {
  * Body can include any of:
  * { name, start_date, end_date, status, description, school_id, diary_id }
  */
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', readOnlyGuard, async (req, res, next) => {
   try {
     const id = toInt(req.params.id);
     if (id === null) return res.status(400).json({ error: 'Invalid project id' });
@@ -247,7 +248,7 @@ router.put('/:id', async (req, res, next) => {
  * DELETE /api/projects/:id
  * Link tables use ON DELETE CASCADE, so related rows in project_tech/course_projects are removed automatically.
  */
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', readOnlyGuard, async (req, res, next) => {
   try {
     const id = toInt(req.params.id);
     if (id === null) return res.status(400).json({ error: 'Invalid project id' });
@@ -378,7 +379,7 @@ router.get('/:id/tech', async (req, res, next) => {
  * POST /api/projects/:id/tech
  * Body: { tech_id: number, usage_area?: string|null, note?: string|null }
  */
-router.post('/:id/tech', async (req, res, next) => {
+router.post('/:id/tech', readOnlyGuard, async (req, res, next) => {
   try {
     const projectId = toInt(req.params.id);
     if (projectId === null) return res.status(400).json({ error: 'Invalid project id' });
@@ -404,7 +405,7 @@ router.post('/:id/tech', async (req, res, next) => {
   }
 });
 
-router.delete('/:id/tech/:techId', async (req, res, next) => {
+router.delete('/:id/tech/:techId', readOnlyGuard, async (req, res, next) => {
   try {
     const projectId = toInt(req.params.id);
     const techId = toInt(req.params.techId);
@@ -459,7 +460,7 @@ router.get('/:id/courses', async (req, res, next) => {
  * POST /api/projects/:id/courses
  * Body: { course_id: number, relation_type?: string|null, note?: string|null }
  */
-router.post('/:id/courses', async (req, res, next) => {
+router.post('/:id/courses', readOnlyGuard, async (req, res, next) => {
   try {
     const projectId = toInt(req.params.id);
     if (projectId === null) return res.status(400).json({ error: 'Invalid project id' });
@@ -485,7 +486,7 @@ router.post('/:id/courses', async (req, res, next) => {
   }
 });
 
-router.delete('/:id/courses/:courseId', async (req, res, next) => {
+router.delete('/:id/courses/:courseId', readOnlyGuard, async (req, res, next) => {
   try {
     const projectId = toInt(req.params.id);
     const courseId = toInt(req.params.courseId);
