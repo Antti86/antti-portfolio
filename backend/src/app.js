@@ -1,5 +1,6 @@
 // backend/src/app.js
 const express = require('express');
+app.disable('x-powered-by');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
