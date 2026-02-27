@@ -1,3 +1,4 @@
+const { parsePagination } = require('../utils/pagination');
 const express = require('express');
 const pool = require('../db/pool');
 
@@ -8,14 +9,24 @@ function toInt(value) {
   return Number.isFinite(n) ? n : null;
 }
 
-router.get('/', async (_req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
-    const r = await pool.query(
+    const pag = parsePagination(req.query);
+    if (pag.error) return res.status(400).json({ error: pag.error });
+    const { limit, offset } = pag;
+
+    const countResult = await pool.query(`SELECT COUNT(*)::int AS total FROM diary`);
+    const total = countResult.rows[0]?.total ?? 0;
+
+    const itemsResult = await pool.query(
       `SELECT diary_id, name, title, slug, created_at
        FROM diary
-       ORDER BY created_at DESC, diary_id DESC`
+       ORDER BY created_at DESC, diary_id DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset]
     );
-    res.json(r.rows);
+
+    res.json({ items: itemsResult.rows, total, limit, offset });
   } catch (e) {
     next(e);
   }

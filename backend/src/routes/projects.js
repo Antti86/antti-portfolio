@@ -1,4 +1,5 @@
 const { readOnlyGuard } = require('../middleware/readOnly');
+const { parsePagination } = require('../utils/pagination');
 const express = require('express');
 const pool = require('../db/pool');
 
@@ -17,6 +18,10 @@ function toInt(value) {
  */
 router.get('/', async (req, res, next) => {
   try {
+    const pag = parsePagination(req.query);
+    if (pag.error) return res.status(400).json({ error: pag.error });
+    const { limit, offset } = pag;
+
     const where = [];
     const params = [];
 
@@ -34,7 +39,17 @@ router.get('/', async (req, res, next) => {
 
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
-    const sql = `
+    // total count
+    const countSql = `SELECT COUNT(*)::int AS total FROM project p ${whereSql}`;
+    const countResult = await pool.query(countSql, params);
+    const total = countResult.rows[0]?.total ?? 0;
+
+    // items
+    const itemsParams = [...params, limit, offset];
+    const limitParamIndex = itemsParams.length - 1; // limit is second last
+    const offsetParamIndex = itemsParams.length; // offset is last
+
+    const itemsSql = `
       SELECT
         p.project_id,
         p.name,
@@ -52,14 +67,15 @@ router.get('/', async (req, res, next) => {
       LEFT JOIN diary d ON d.diary_id = p.diary_id
       ${whereSql}
       ORDER BY
-        -- prefer ongoing projects first
         (CASE WHEN p.end_date IS NULL THEN 0 ELSE 1 END),
         p.start_date DESC NULLS LAST,
         p.project_id DESC
+      LIMIT $${limitParamIndex} OFFSET $${offsetParamIndex}
     `;
 
-    const r = await pool.query(sql, params);
-    res.json(r.rows);
+    const itemsResult = await pool.query(itemsSql, itemsParams);
+
+    res.json({ items: itemsResult.rows, total, limit, offset });
   } catch (e) {
     next(e);
   }
