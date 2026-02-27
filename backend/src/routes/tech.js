@@ -13,6 +13,57 @@ router.get('/', async (_req, res, next) => {
   }
 });
 
+router.get('/:id/details', async (req, res, next) => {
+  try {
+    const id = Number.parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) {
+      return res.status(400).json({ error: 'Invalid tech id' });
+    }
+
+    // 1) tech
+    const techResult = await pool.query(
+      `SELECT tech_id, name
+       FROM tech
+       WHERE tech_id = $1`,
+      [id]
+    );
+
+    if (techResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Tech not found' });
+    }
+
+    const tech = techResult.rows[0];
+
+    // 2) related projects
+    const projectsResult = await pool.query(
+      `SELECT p.project_id, p.name, pt.note
+       FROM project_tech pt
+       JOIN project p ON p.project_id = pt.project_id
+       WHERE pt.tech_id = $1
+       ORDER BY p.name ASC`,
+      [id]
+    );
+
+    // 3) related courses
+    const coursesResult = await pool.query(
+      `SELECT c.course_id, c.name, ct.note
+       FROM course_tech ct
+       JOIN course c ON c.course_id = ct.course_id
+       WHERE ct.tech_id = $1
+       ORDER BY c.name ASC`,
+      [id]
+    );
+
+    res.json({
+      ...tech,
+      projects: projectsResult.rows,
+      courses: coursesResult.rows,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // READ one
 router.get('/:id', async (req, res, next) => {
   try {

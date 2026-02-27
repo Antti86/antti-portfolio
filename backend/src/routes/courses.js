@@ -64,6 +64,57 @@ router.get('/', async (req, res, next) => {
   }
 });
 
+router.get('/:id/details', async (req, res, next) => {
+  try {
+    const id = Number.parseInt(req.params.id, 10);
+    if (!Number.isFinite(id)) {
+      return res.status(400).json({ error: 'Invalid course id' });
+    }
+
+    // 1) course
+    const courseResult = await pool.query(
+      `SELECT course_id, name, start_date, end_date, status, grade, school_id, diary_id
+       FROM course
+       WHERE course_id = $1`,
+      [id]
+    );
+
+    if (courseResult.rowCount === 0) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    const course = courseResult.rows[0];
+
+    // 2) related projects
+    const projectsResult = await pool.query(
+      `SELECT p.project_id, p.name, cp.relation_type, cp.note
+       FROM course_projects cp
+       JOIN project p ON p.project_id = cp.project_id
+       WHERE cp.course_id = $1
+       ORDER BY p.name ASC`,
+      [id]
+    );
+
+    // 3) related tech
+    const techResult = await pool.query(
+      `SELECT t.tech_id, t.name, ct.note
+       FROM course_tech ct
+       JOIN tech t ON t.tech_id = ct.tech_id
+       WHERE ct.course_id = $1
+       ORDER BY t.name ASC`,
+      [id]
+    );
+
+    res.json({
+      ...course,
+      projects: projectsResult.rows,
+      tech: techResult.rows,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 /**
  * GET /api/courses/:id
  */
