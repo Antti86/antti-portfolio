@@ -81,57 +81,6 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-router.get('/:id/details', async (req, res, next) => {
-  try {
-    const id = Number.parseInt(req.params.id, 10);
-    if (!Number.isFinite(id)) {
-      return res.status(400).json({ error: 'Invalid project id' });
-    }
-
-    // 1️⃣ Project base
-    const projectResult = await pool.query(
-      `SELECT project_id, name, description, github_url, demo_url, created_at
-       FROM project
-       WHERE project_id = $1`,
-      [id]
-    );
-
-    if (projectResult.rowCount === 0) {
-      return res.status(404).json({ error: 'Project not found' });
-    }
-
-    const project = projectResult.rows[0];
-
-    // 2️⃣ Related tech
-    const techResult = await pool.query(
-      `SELECT t.tech_id, t.name, pt.note
-       FROM project_tech pt
-       JOIN tech t ON t.tech_id = pt.tech_id
-       WHERE pt.project_id = $1
-       ORDER BY t.name ASC`,
-      [id]
-    );
-
-    // 3️⃣ Related courses
-    const coursesResult = await pool.query(
-      `SELECT c.course_id, c.name, cp.relation_type, cp.note
-       FROM course_projects cp
-       JOIN course c ON c.course_id = cp.course_id
-       WHERE cp.project_id = $1
-       ORDER BY c.name ASC`,
-      [id]
-    );
-
-    res.json({
-      ...project,
-      tech: techResult.rows,
-      courses: coursesResult.rows,
-    });
-  } catch (err) {
-    next(err);
-  }
-});
-
 /**
  * GET /api/projects/:id
  */
@@ -337,10 +286,7 @@ router.get('/:id/details', async (req, res, next) => {
   const projectId = toInt(req.params.id);
   if (projectId === null) return res.status(400).json({ error: 'Invalid project id' });
 
-  const client = await pool.connect();
   try {
-    await client.query('BEGIN');
-
     // 1) Base project
     const projectSql = `
       SELECT
@@ -360,9 +306,8 @@ router.get('/:id/details', async (req, res, next) => {
       LEFT JOIN diary d ON d.diary_id = p.diary_id
       WHERE p.project_id = $1
     `;
-    const pr = await client.query(projectSql, [projectId]);
+    const pr = await pool.query(projectSql, [projectId]);
     if (pr.rowCount === 0) {
-      await client.query('ROLLBACK');
       return res.status(404).json({ error: 'Project not found' });
     }
 
@@ -378,7 +323,7 @@ router.get('/:id/details', async (req, res, next) => {
       WHERE pt.project_id = $1
       ORDER BY t.name ASC
     `;
-    const tr = await client.query(techSql, [projectId]);
+    const tr = await pool.query(techSql, [projectId]);
 
     // 3) Related courses
     const courseSql = `
@@ -396,22 +341,15 @@ router.get('/:id/details', async (req, res, next) => {
       WHERE cp.project_id = $1
       ORDER BY c.start_date DESC, c.course_id DESC
     `;
-    const cr = await client.query(courseSql, [projectId]);
-
-    await client.query('COMMIT');
+    const cr = await pool.query(courseSql, [projectId]);
 
     res.json({
-      project: pr.rows[0],
+      ...pr.rows[0],
       tech: tr.rows,
       courses: cr.rows,
     });
   } catch (e) {
-    try {
-      await client.query('ROLLBACK');
-    } catch (_) {}
     next(e);
-  } finally {
-    client.release();
   }
 });
 
