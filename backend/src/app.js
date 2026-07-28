@@ -1,6 +1,5 @@
 // backend/src/app.js
 const express = require('express');
-app.disable('x-powered-by');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
@@ -10,6 +9,7 @@ const { notFound } = require('./middleware/notFound');
 const { errorHandler } = require('./middleware/errorHandler');
 
 const app = express();
+app.disable('x-powered-by');
 
 // Security / basics
 app.use(helmet());
