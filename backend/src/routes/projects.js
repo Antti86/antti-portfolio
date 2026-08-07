@@ -1,14 +1,10 @@
 const { readOnlyGuard } = require('../middleware/readOnly');
+const { parseId } = require('../utils/id');
 const { parsePagination } = require('../utils/pagination');
 const express = require('express');
 const pool = require('../db/pool');
 
 const router = express.Router();
-
-function toInt(value) {
-  const n = Number.parseInt(value, 10);
-  return Number.isFinite(n) ? n : null;
-}
 
 /**
  * GET /api/projects
@@ -30,8 +26,8 @@ router.get('/', async (req, res, next) => {
       where.push(`p.status = $${params.length}`);
     }
 
-    if (req.query.schoolId) {
-      const schoolId = toInt(req.query.schoolId);
+    if (req.query.schoolId !== undefined) {
+      const schoolId = parseId(req.query.schoolId);
       if (schoolId === null) return res.status(400).json({ error: 'schoolId must be a number' });
       params.push(schoolId);
       where.push(`p.school_id = $${params.length}`);
@@ -86,7 +82,7 @@ router.get('/', async (req, res, next) => {
  */
 router.get('/:id', async (req, res, next) => {
   try {
-    const id = toInt(req.params.id);
+    const id = parseId(req.params.id);
     if (id === null) return res.status(400).json({ error: 'Invalid project id' });
 
     const sql = `
@@ -146,12 +142,12 @@ router.post('/', readOnlyGuard, async (req, res, next) => {
     if (!status || typeof status !== 'string')
       return res.status(400).json({ error: 'status is required' });
 
-    const schoolId = school_id === null || school_id === undefined ? null : toInt(school_id);
+    const schoolId = school_id === null || school_id === undefined ? null : parseId(school_id);
     if (school_id !== null && school_id !== undefined && schoolId === null) {
       return res.status(400).json({ error: 'school_id must be a number or null' });
     }
 
-    const diaryId = diary_id === null || diary_id === undefined ? null : toInt(diary_id);
+    const diaryId = diary_id === null || diary_id === undefined ? null : parseId(diary_id);
     if (diary_id !== null && diary_id !== undefined && diaryId === null) {
       return res.status(400).json({ error: 'diary_id must be a number or null' });
     }
@@ -185,7 +181,7 @@ router.post('/', readOnlyGuard, async (req, res, next) => {
  */
 router.put('/:id', readOnlyGuard, async (req, res, next) => {
   try {
-    const id = toInt(req.params.id);
+    const id = parseId(req.params.id);
     if (id === null) return res.status(400).json({ error: 'Invalid project id' });
 
     const allowed = [
@@ -220,7 +216,7 @@ router.put('/:id', readOnlyGuard, async (req, res, next) => {
         if (value === null) {
           value = null;
         } else {
-          const n = toInt(value);
+          const n = parseId(value);
           if (n === null)
             return res.status(400).json({ error: 'school_id must be a number or null' });
           value = n;
@@ -231,7 +227,7 @@ router.put('/:id', readOnlyGuard, async (req, res, next) => {
         if (value === null) {
           value = null;
         } else {
-          const n = toInt(value);
+          const n = parseId(value);
           if (n === null)
             return res.status(400).json({ error: 'diary_id must be a number or null' });
           value = n;
@@ -266,7 +262,7 @@ router.put('/:id', readOnlyGuard, async (req, res, next) => {
  */
 router.delete('/:id', readOnlyGuard, async (req, res, next) => {
   try {
-    const id = toInt(req.params.id);
+    const id = parseId(req.params.id);
     if (id === null) return res.status(400).json({ error: 'Invalid project id' });
 
     const r = await pool.query('DELETE FROM project WHERE project_id = $1', [id]);
@@ -283,7 +279,7 @@ router.delete('/:id', readOnlyGuard, async (req, res, next) => {
 // ------------------------------------------------------
 
 router.get('/:id/details', async (req, res, next) => {
-  const projectId = toInt(req.params.id);
+  const projectId = parseId(req.params.id);
   if (projectId === null) return res.status(400).json({ error: 'Invalid project id' });
 
   try {
@@ -359,7 +355,7 @@ router.get('/:id/details', async (req, res, next) => {
 
 router.get('/:id/tech', async (req, res, next) => {
   try {
-    const projectId = toInt(req.params.id);
+    const projectId = parseId(req.params.id);
     if (projectId === null) return res.status(400).json({ error: 'Invalid project id' });
 
     const sql = `
@@ -386,10 +382,10 @@ router.get('/:id/tech', async (req, res, next) => {
  */
 router.post('/:id/tech', readOnlyGuard, async (req, res, next) => {
   try {
-    const projectId = toInt(req.params.id);
+    const projectId = parseId(req.params.id);
     if (projectId === null) return res.status(400).json({ error: 'Invalid project id' });
 
-    const techId = toInt(req.body?.tech_id);
+    const techId = parseId(req.body?.tech_id);
     if (techId === null) return res.status(400).json({ error: 'tech_id must be a number' });
 
     const usage_area = req.body?.usage_area ?? null;
@@ -412,8 +408,8 @@ router.post('/:id/tech', readOnlyGuard, async (req, res, next) => {
 
 router.delete('/:id/tech/:techId', readOnlyGuard, async (req, res, next) => {
   try {
-    const projectId = toInt(req.params.id);
-    const techId = toInt(req.params.techId);
+    const projectId = parseId(req.params.id);
+    const techId = parseId(req.params.techId);
 
     if (projectId === null) return res.status(400).json({ error: 'Invalid project id' });
     if (techId === null) return res.status(400).json({ error: 'Invalid tech id' });
@@ -436,7 +432,7 @@ router.delete('/:id/tech/:techId', readOnlyGuard, async (req, res, next) => {
 
 router.get('/:id/courses', async (req, res, next) => {
   try {
-    const projectId = toInt(req.params.id);
+    const projectId = parseId(req.params.id);
     if (projectId === null) return res.status(400).json({ error: 'Invalid project id' });
 
     const sql = `
@@ -467,10 +463,10 @@ router.get('/:id/courses', async (req, res, next) => {
  */
 router.post('/:id/courses', readOnlyGuard, async (req, res, next) => {
   try {
-    const projectId = toInt(req.params.id);
+    const projectId = parseId(req.params.id);
     if (projectId === null) return res.status(400).json({ error: 'Invalid project id' });
 
-    const courseId = toInt(req.body?.course_id);
+    const courseId = parseId(req.body?.course_id);
     if (courseId === null) return res.status(400).json({ error: 'course_id must be a number' });
 
     const relation_type = req.body?.relation_type ?? null;
@@ -493,8 +489,8 @@ router.post('/:id/courses', readOnlyGuard, async (req, res, next) => {
 
 router.delete('/:id/courses/:courseId', readOnlyGuard, async (req, res, next) => {
   try {
-    const projectId = toInt(req.params.id);
-    const courseId = toInt(req.params.courseId);
+    const projectId = parseId(req.params.id);
+    const courseId = parseId(req.params.courseId);
 
     if (projectId === null) return res.status(400).json({ error: 'Invalid project id' });
     if (courseId === null) return res.status(400).json({ error: 'Invalid course id' });

@@ -1,13 +1,9 @@
 const { parsePagination } = require('../utils/pagination');
 const express = require('express');
 const pool = require('../db/pool');
+const { parseId } = require('../utils/id');
 
 const router = express.Router();
-
-function toInt(value) {
-  const n = Number.parseInt(value, 10);
-  return Number.isFinite(n) ? n : null;
-}
 
 router.get('/', async (req, res, next) => {
   try {
@@ -54,7 +50,7 @@ router.get('/slug/:slug', async (req, res, next) => {
 
 router.get('/:id', async (req, res, next) => {
   try {
-    const id = toInt(req.params.id);
+    const id = parseId(req.params.id);
     if (id === null) return res.status(400).json({ error: 'Invalid diary id' });
 
     const r = await pool.query(

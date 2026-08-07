@@ -1,4 +1,5 @@
 const { readOnlyGuard } = require('../middleware/readOnly');
+const { parseId } = require('../utils/id');
 const express = require('express');
 const pool = require('../db/pool');
 const router = express.Router();
@@ -15,8 +16,8 @@ router.get('/', async (_req, res, next) => {
 
 router.get('/:id/details', async (req, res, next) => {
   try {
-    const id = Number.parseInt(req.params.id, 10);
-    if (!Number.isFinite(id)) {
+    const id = parseId(req.params.id);
+    if (id === null) {
       return res.status(400).json({ error: 'Invalid tech id' });
     }
 
@@ -67,9 +68,10 @@ router.get('/:id/details', async (req, res, next) => {
 // READ one
 router.get('/:id', async (req, res, next) => {
   try {
-    const r = await pool.query('SELECT tech_id, name FROM tech WHERE tech_id = $1', [
-      req.params.id,
-    ]);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: 'Invalid tech id' });
+
+    const r = await pool.query('SELECT tech_id, name FROM tech WHERE tech_id = $1', [id]);
     if (r.rowCount === 0) return res.status(404).json({ error: 'Not found' });
     res.json(r.rows[0]);
   } catch (e) {
@@ -93,10 +95,13 @@ router.post('/', readOnlyGuard, async (req, res, next) => {
 // UPDATE
 router.put('/:id', readOnlyGuard, async (req, res, next) => {
   try {
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: 'Invalid tech id' });
+
     const { name } = req.body;
     const r = await pool.query(
       'UPDATE tech SET name = $1 WHERE tech_id = $2 RETURNING tech_id, name',
-      [name, req.params.id]
+      [name, id]
     );
     if (r.rowCount === 0) return res.status(404).json({ error: 'Not found' });
     res.json(r.rows[0]);
@@ -108,7 +113,10 @@ router.put('/:id', readOnlyGuard, async (req, res, next) => {
 // DELETE
 router.delete('/:id', readOnlyGuard, async (req, res, next) => {
   try {
-    const r = await pool.query('DELETE FROM tech WHERE tech_id = $1', [req.params.id]);
+    const id = parseId(req.params.id);
+    if (id === null) return res.status(400).json({ error: 'Invalid tech id' });
+
+    const r = await pool.query('DELETE FROM tech WHERE tech_id = $1', [id]);
     if (r.rowCount === 0) return res.status(404).json({ error: 'Not found' });
     res.status(204).send();
   } catch (e) {

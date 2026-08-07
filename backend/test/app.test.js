@@ -189,3 +189,61 @@ test('GET /api/projects/:id/details passes database failures to the error middle
   assert.equal(body.error, 'Database unavailable');
   assert.equal(queryCalls.length, 1);
 });
+
+function methodRequest(path, method) {
+  return new Promise((resolve, reject) => {
+    const address = server.address();
+    const req = http.request(
+      { host: '127.0.0.1', method, path, port: address.port },
+      (res) => {
+        let body = '';
+        res.setEncoding('utf8');
+        res.on('data', (chunk) => {
+          body += chunk;
+        });
+        res.on('end', () => {
+          resolve({ body, headers: res.headers, statusCode: res.statusCode });
+        });
+      }
+    );
+
+    req.on('error', reject);
+    req.end();
+  });
+}
+
+test('key entity routes reject malformed IDs without querying the database', async () => {
+  const cases = [
+    ['/api/projects/7abc/details', 'Invalid project id'],
+    ['/api/courses/1.5/details', 'Invalid course id'],
+    ['/api/tech/0/details', 'Invalid tech id'],
+    ['/api/schools/-1', 'Invalid school id'],
+    ['/api/diaries/7abc', 'Invalid diary id'],
+    ['/api/projects?schoolId=', 'schoolId must be a number'],
+    ['/api/courses?schoolId=7abc', 'schoolId must be a number'],
+  ];
+
+  for (const [path, error] of cases) {
+    const response = await request(path);
+
+    assert.equal(response.statusCode, 400, path);
+    assert.deepEqual(JSON.parse(response.body), { error }, path);
+    assert.equal(queryCalls.length, 0, path);
+  }
+});
+
+test('relationship routes reject malformed IDs without querying the database', async () => {
+  const cases = [
+    ['/api/projects/0/tech', 'GET', 'Invalid project id'],
+    ['/api/projects/1/tech/7abc', 'DELETE', 'Invalid tech id'],
+    ['/api/projects/1/courses/1.5', 'DELETE', 'Invalid course id'],
+  ];
+
+  for (const [path, method, error] of cases) {
+    const response = await methodRequest(path, method);
+
+    assert.equal(response.statusCode, 400, path);
+    assert.deepEqual(JSON.parse(response.body), { error }, path);
+    assert.equal(queryCalls.length, 0, path);
+  }
+});
