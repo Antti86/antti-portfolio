@@ -13,6 +13,21 @@ The intended architecture is:
 
 The application is still under development. Do not assume that documented or planned features are already implemented.
 
+## Project documentation
+
+Before planning or implementing substantial features, review
+`docs/README.md` and the relevant documents under `docs/`.
+
+Respect document status and source-of-truth declarations:
+
+- Approved documents define the intended implementation direction.
+- Draft documents are proposals and must not be treated as approved requirements.
+- Current source code and `infra/sql/schema.sql` define the current implementation.
+- If documentation and implementation conflict, report the conflict instead of silently changing either one.
+
+For Portfolio V1 decisions, use:
+`docs/product/v1-scope.md`
+
 ## Repository structure
 
 - `backend/` — Node.js and Express API
