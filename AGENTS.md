@@ -96,8 +96,10 @@ Available commands:
 ```bash
 npm start
 npm run dev
+npm test
+```
 
-The current npm test command is only a failing placeholder. Do not report tests as passing until a real test framework and test suite have been implemented.
+The `npm test` command runs the current test suite with Node.js's built-in test runner (`node --test`). Report tests as passing only when the command has been run successfully.
 
 Before running the backend, verify that its known startup blockers have been addressed.
 
