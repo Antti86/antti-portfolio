@@ -94,7 +94,7 @@ Edellä kuvatut kohdat ovat tuotteen suunnittelusuuntaa. Draft-status tarkoittaa
 
 - Valitaanko kurssien esitystavaksi aikajana, taulukko vai molemmat?
 - Tarvitaanko kursseille opintopisteet tietomalliin vai esitetäänkö ne muusta lähteestä?
-- Ovatko GitHub- ja demo-URL:t tietokantaan tallennettavaa projektidataa vai muulla tavalla hallittavaa sisältöä?
+- Tallennetaanko mahdollinen myöhempi demo-URL tietokantaan vai hallitaanko se muulla tavalla?
 - Toteutetaanko projektien tagit ja suodatus; jos toteutetaan, mikä on niiden tietomalli?
 - Missä oppimispäiväkirjojen varsinainen sisältö säilytetään ja miten se julkaistaan?
 - Toteutetaanko yhteydenottolomake, ja mitä toimitus-, roskaposti- ja tietosuojavaatimuksia siihen liittyy?

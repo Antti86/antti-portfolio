@@ -42,4 +42,5 @@ Status ilmaisee dokumentin aseman, ei ominaisuuden valmistumisastetta. Draft-dok
 - [V1-rajaus](./product/v1-scope.md) on Approved ja ohjaa V1-frontendin tavoiteltua toteutusta Draft-suunnitelmien sijasta.
 - Frontend on vielä toteuttamatta.
 - Backend ja PostgreSQL-skeema ovat osittain toteutettuja.
+- Projektikohtaisen GitHub-linkin tietokanta- ja API-tuki on toteutettu nullable `github_url`-kentällä. Frontend-käyttö puuttuu vielä.
 - Tietokantakaavion ja SQL-skeeman erot on kirjattu [tietokantasuunnitelmaan](./database/database-design.md), mutta niitä ei ole ratkaistu tässä dokumentointitehtävässä.

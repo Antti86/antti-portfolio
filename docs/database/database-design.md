@@ -10,7 +10,7 @@
 
 Tämä dokumentti tekee alkuperäisestä tietokantakaaviosta tekstimuotoisen ja vertaa sitä nykyiseen PostgreSQL-skeemaan. Kaavio kuvaa alkuperäistä suunnitelmaa. `infra/sql/schema.sql` kuvaa repositorion nykyistä toteutettavaa skeemaa ja on skeeman source of truth.
 
-Vertailu on staattinen: tietokantaa ei ole käynnistetty eikä skeemaa ole tässä tehtävässä muutettu.
+Vertailu kuvaa repositorion nykyistä skeemaa. Nykyinen paikallinen kehitystietokanta on päivitetty dataa säilyttävällä [`github_url`-päivitysskriptillä](../../infra/sql/updates/2026-08-12-add-project-github-url.sql).
 
 ## Alkuperäisen kaavion tietomalli
 
@@ -61,6 +61,7 @@ Rakenne vastaa kaavion ydinsuhteita. SQL-skeema määrittää lisäksi identity-
 | Course.name | `VARCHAR(30)` | `VARCHAR(120)` |
 | Project.name | `VARCHAR(30)` | `VARCHAR(120)` |
 | Project.description | `VARCHAR(100)` | `TEXT` |
+| Project.github_url | Ei kenttää | Nullable `TEXT` |
 | Diary.name | `VARCHAR(30)` | `VARCHAR(100)` |
 | Diary.title | `VARCHAR(30)` | `VARCHAR(200)` |
 | Diary.slug | `VARCHAR(50)` | `VARCHAR(120)` |
@@ -79,6 +80,7 @@ Rakenne vastaa kaavion ydinsuhteita. SQL-skeema määrittää lisäksi identity-
 - Kaaviossa `Diary.title` ja `Diary.Created` eivät ole merkitty pakollisiksi; SQL-skeemassa `title` ja `created_at` ovat `NOT NULL`.
 - SQL-skeema antaa `diary.created_at`-kentälle oletusarvon `NOW()`; kaavio ei määritä oletusarvoa.
 - Projectin vapaaehtoiset `school_id`- ja `diary_id`-suhteet sekä Coursen vapaaehtoinen `diary_id` vastaavat kaaviota.
+- SQL-skeeman `project.github_url` sallii `NULL`-arvon. Kaaviossa ei ole tätä kenttää.
 - Coursen pakollinen `school_id` vastaa kaaviota.
 
 ### SQL-skeemassa olevat lisärajoitteet
@@ -90,6 +92,7 @@ Kaavio ei esitä seuraavia SQL-skeeman yksityiskohtia:
 - päivämäärien järjestyksen tarkistus School-, Course- ja Project-tauluissa
 - `school.avg_grade`-arvon rajaaminen välille 0–5
 - Course- ja Project-statusarvojen rajaaminen arvoihin `planned`, `in_progress` ja `completed`
+- `project.github_url`-arvon rajaaminen kanoniseen muotoon `https://github.com/<owner>/<repository>` silloin, kun arvo ei ole `NULL`
 - `project_tech.usage_area`-arvojen sallittu joukko
 - `course_tech.emphasis`-arvojen sallittu joukko
 - vierasavainten `ON DELETE CASCADE`, `SET NULL` ja `RESTRICT` -käyttäytyminen
@@ -105,12 +108,16 @@ PNG-kaavio ilmaisee taulujen perusrakenteen, pää- ja vierasavaimet sekä keske
 
 ### Nykyinen toteutus
 
-`infra/sql/schema.sql` on nykyinen koneellisesti suoritettava skeema. Backendin SQL-kyselyt käyttävät sen lowercase-taulu- ja sarakenimiä. Skeeman toimivuutta ei varmennettu tässä tehtävässä käynnissä olevaa PostgreSQL-instanssia vasten.
+`infra/sql/schema.sql` on nykyinen koneellisesti suoritettava skeema. Backendin SQL-kyselyt käyttävät sen lowercase-taulu- ja sarakenimiä.
+
+`project.github_url` on nullable `TEXT` -kenttä. CHECK-rajoite hyväksyy `NULL`-arvon tai kanonisen GitHub-repository-URL:n muodossa `https://github.com/<owner>/<repository>`. Backend validoi ja normalisoi arvon sekä palauttaa sen projektien listaus-, yksittäis-, details-, POST- ja PUT-endpointeissa. Frontend-käyttöä ei ole vielä toteutettu.
+
+Nykyinen paikallinen kehitystietokanta on päivitetty transaktionaalisella tiedostolla [`infra/sql/updates/2026-08-12-add-project-github-url.sql`](../../infra/sql/updates/2026-08-12-add-project-github-url.sql). Skripti lisää kentän ja CHECK-rajoitteen dataa tai projektien tunnisteita poistamatta sekä asettaa `antti-portfolio`-projektin vahvistetuksi URL:ksi `https://github.com/Antti86/antti-portfolio`. `qt-chess`-projektin arvo on tällä hetkellä `NULL`.
 
 ## Tuotesuunnitelman ja tietomallin väliset avoimet kohdat
 
 - Sivustosuunnitelma mainitsee kurssien opintopisteet, mutta kaaviossa ja SQL-skeemassa ei ole niitä vastaavaa kenttää.
-- GitHub-linkki on Approved V1 -vaatimus, mutta kaaviossa ja SQL-skeemassa ei ole sitä vastaavaa kenttää. Backend- ja tietokantatuki on erillinen tuleva tehtävä. Live demo -linkit eivät kuulu V1:een.
+- GitHub-linkki on Approved V1 -vaatimus. Alkuperäisessä kaaviossa ei ole sitä vastaavaa kenttää, mutta nykyisessä SQL-skeemassa ja backend-API:ssa tuki on toteutettu `github_url`-kentällä. Frontend-käyttö puuttuu vielä. Live demo -linkit eivät kuulu V1:een.
 - Mahdollisille projektitageille tai suodatuksen kategorioille ei ole kuvattu tietomallia.
 - Kaavio ja SQL tallentavat vain oppimispäiväkirjan metatietoja; varsinaisen sisällön sijainti ja yhteys metatietoon eivät ilmene näistä lähteistä.
 - CV:lle, yhteydenotoille ja statistiikalle ei ole kuvattu tietokantatauluja. Dokumentit eivät ratkaise, tarvitsevatko nämä tietokantaa.
@@ -121,5 +128,4 @@ PNG-kaavio ilmaisee taulujen perusrakenteen, pää- ja vierasavaimet sekä keske
 - Ovatko SQL-skeeman nykyiset null-säännöt ja kenttäpituudet tarkoituksellisia lopullisia valintoja?
 - Yhtenäistetäänkö liitostaulujen nimet dokumentaatiossa SQL-skeeman nimien mukaisiksi?
 - Tarvitaanko opintopisteille tai projektitageille V1:n jälkeen tietomalli, vai hallitaanko ne muualla?
-- Mikä on GitHub-linkin lopullinen tietokanta- ja API-sopimus tulevassa backend-tehtävässä?
 - Missä oppimispäiväkirjan varsinainen sisältö säilytetään?
