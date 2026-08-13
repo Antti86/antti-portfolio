@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS project (
   school_id    INT,
   status       VARCHAR(30) NOT NULL,
   description  TEXT,
+  github_url   TEXT,
   diary_id     INT,
 
   CONSTRAINT fk_project_school
@@ -80,7 +81,14 @@ CREATE TABLE IF NOT EXISTS project (
     ON DELETE SET NULL,
 
   CONSTRAINT chk_project_dates CHECK (end_date IS NULL OR start_date IS NULL OR end_date >= start_date),
-  CONSTRAINT chk_project_status CHECK (status IN ('planned', 'in_progress', 'completed'))
+  CONSTRAINT chk_project_status CHECK (status IN ('planned', 'in_progress', 'completed')),
+  CONSTRAINT chk_project_github_url CHECK (
+    github_url IS NULL OR (
+      github_url ~ '^https://github[.]com/[A-Za-z0-9]([A-Za-z0-9-]{0,37}[A-Za-z0-9])?/[A-Za-z0-9._-]{1,100}$'
+      AND github_url !~ '^https://github[.]com/[^/]*--'
+      AND split_part(github_url, '/', 5) NOT IN ('.', '..')
+    )
+  )
 );
 
 -- -----------------------------------------

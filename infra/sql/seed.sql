@@ -56,7 +56,7 @@ VALUES
   );
 
 -- 5) Project
-INSERT INTO project (name, start_date, end_date, school_id, status, description, diary_id)
+INSERT INTO project (name, start_date, end_date, school_id, status, description, github_url, diary_id)
 VALUES
   (
     'antti-portfolio',
@@ -65,6 +65,7 @@ VALUES
     (SELECT school_id FROM school WHERE name = 'Metropolia UAS (Open AMK)'),
     'in_progress',
     'Fullstack portfolio: Node REST API + PostgreSQL + React + Azure (planned).',
+    'https://github.com/Antti86/antti-portfolio',
     (SELECT diary_id FROM diary WHERE slug = 'portfolio-project')
   ),
   (
@@ -74,6 +75,7 @@ VALUES
     NULL,
     'completed',
     'Cross-platform chess game built with C++ and Qt.',
+    NULL,
     NULL
   );
 

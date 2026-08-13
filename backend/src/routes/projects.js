@@ -1,4 +1,5 @@
 const { readOnlyGuard } = require('../middleware/readOnly');
+const { parseGitHubUrl } = require('../utils/githubUrl');
 const { parseId } = require('../utils/id');
 const { parsePagination } = require('../utils/pagination');
 const express = require('express');
@@ -53,6 +54,7 @@ router.get('/', async (req, res, next) => {
         p.end_date,
         p.status,
         p.description,
+        p.github_url,
         p.school_id,
         s.name AS school_name,
         p.diary_id,
@@ -93,6 +95,7 @@ router.get('/:id', async (req, res, next) => {
         p.end_date,
         p.status,
         p.description,
+        p.github_url,
         p.school_id,
         s.name AS school_name,
         p.diary_id,
@@ -121,6 +124,7 @@ router.get('/:id', async (req, res, next) => {
  *   "end_date": null,                  // optional
  *   "status": "in_progress",
  *   "description": "....",             // optional
+ *   "github_url": "https://github.com/owner/repository", // optional
  *   "school_id": 1,                    // optional
  *   "diary_id": 2                      // optional
  * }
@@ -133,6 +137,7 @@ router.post('/', readOnlyGuard, async (req, res, next) => {
       end_date = null,
       status,
       description = null,
+      github_url = null,
       school_id = null,
       diary_id = null,
     } = req.body || {};
@@ -152,10 +157,15 @@ router.post('/', readOnlyGuard, async (req, res, next) => {
       return res.status(400).json({ error: 'diary_id must be a number or null' });
     }
 
+    const parsedGitHubUrl = parseGitHubUrl(github_url);
+    if (parsedGitHubUrl.error) {
+      return res.status(400).json({ error: parsedGitHubUrl.error });
+    }
+
     const sql = `
-      INSERT INTO project (name, start_date, end_date, school_id, status, description, diary_id)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING project_id, name, start_date, end_date, school_id, status, description, diary_id
+      INSERT INTO project (name, start_date, end_date, school_id, status, description, github_url, diary_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING project_id, name, start_date, end_date, school_id, status, description, github_url, diary_id
     `;
 
     const r = await pool.query(sql, [
@@ -165,6 +175,7 @@ router.post('/', readOnlyGuard, async (req, res, next) => {
       schoolId,
       status,
       description,
+      parsedGitHubUrl.value,
       diaryId,
     ]);
 
@@ -177,7 +188,7 @@ router.post('/', readOnlyGuard, async (req, res, next) => {
 /**
  * PUT /api/projects/:id
  * Body can include any of:
- * { name, start_date, end_date, status, description, school_id, diary_id }
+ * { name, start_date, end_date, status, description, github_url, school_id, diary_id }
  */
 router.put('/:id', readOnlyGuard, async (req, res, next) => {
   try {
@@ -190,6 +201,7 @@ router.put('/:id', readOnlyGuard, async (req, res, next) => {
       'end_date',
       'status',
       'description',
+      'github_url',
       'school_id',
       'diary_id',
     ];
@@ -234,6 +246,12 @@ router.put('/:id', readOnlyGuard, async (req, res, next) => {
         }
       }
 
+      if (key === 'github_url') {
+        const parsedGitHubUrl = parseGitHubUrl(value);
+        if (parsedGitHubUrl.error) return res.status(400).json({ error: parsedGitHubUrl.error });
+        value = parsedGitHubUrl.value;
+      }
+
       params.push(value);
       sets.push(`${key} = $${params.length}`);
     }
@@ -244,7 +262,7 @@ router.put('/:id', readOnlyGuard, async (req, res, next) => {
       UPDATE project
       SET ${sets.join(', ')}
       WHERE project_id = $${params.length}
-      RETURNING project_id, name, start_date, end_date, school_id, status, description, diary_id
+      RETURNING project_id, name, start_date, end_date, school_id, status, description, github_url, diary_id
     `;
 
     const r = await pool.query(sql, params);
@@ -292,6 +310,7 @@ router.get('/:id/details', async (req, res, next) => {
         p.end_date,
         p.status,
         p.description,
+        p.github_url,
         p.school_id,
         s.name AS school_name,
         p.diary_id,
