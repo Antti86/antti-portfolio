@@ -129,6 +129,7 @@ desktop.ini
 *.old
 *.orig
 *.lock
+!frontend/package-lock.json
 
 ####################
 # OPTIONAL         #
